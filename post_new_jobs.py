@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from telegram import Bot
 import asyncio
+from datetime import datetime
 
 async def main():
     # Load the fetched data
@@ -21,13 +22,17 @@ async def main():
     previous_jobs_set = {job["description"] for job in previous_db}
     new_jobs = [job for job in current_db if job["description"] not in previous_jobs_set]
 
-    # Debugging: Print new jobs detected
-    print(f"New Jobs Detected: {len(new_jobs)}")
-    for job in new_jobs:
+    # Filter jobs posted today
+    today_date = datetime.now().strftime("%B %d, %Y")  # e.g., "November 24, 2024"
+    today_jobs = [job for job in new_jobs if job["post_date"] == today_date]
+
+    # Debugging: Print jobs posted today
+    print(f"Jobs Posted Today ({today_date}): {len(today_jobs)}")
+    for job in today_jobs:
         print(job)
 
-    # Post new jobs to Telegram
-    if new_jobs:
+    # Post jobs posted today to Telegram
+    if today_jobs:
         # Debugging: Validate environment variables
         bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
         channel_id = os.getenv("TELEGRAM_CHANNEL_ID")
@@ -36,7 +41,7 @@ async def main():
 
         bot = Bot(token=bot_token)
 
-        for job in new_jobs:
+        for job in today_jobs:
             message = (
                 f"📢 *{job['position']}* at *{job['company']}*\n"
                 f"🌍 Location: {job['location']}\n"
@@ -50,9 +55,9 @@ async def main():
             print(f"Sending message: {message}")
             await bot.send_message(chat_id=channel_id, text=message, parse_mode="Markdown")
 
-        print(f"Posted {len(new_jobs)} new jobs to Telegram.")
+        print(f"Posted {len(today_jobs)} jobs posted today to Telegram.")
     else:
-        print("No new jobs detected.")
+        print("No jobs posted today detected.")
 
     # Save the current jobs to track in the next run
     previous_jobs_path.parent.mkdir(parents=True, exist_ok=True)
