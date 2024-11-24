@@ -21,10 +21,20 @@ async def main():
     previous_jobs_set = {job["description"] for job in previous_db}
     new_jobs = [job for job in current_db if job["description"] not in previous_jobs_set]
 
+    # Debugging: Print new jobs detected
+    print(f"New Jobs Detected: {len(new_jobs)}")
+    for job in new_jobs:
+        print(job)
+
     # Post new jobs to Telegram
     if new_jobs:
-        bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"))
+        # Debugging: Validate environment variables
+        bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
         channel_id = os.getenv("TELEGRAM_CHANNEL_ID")
+        print(f"TELEGRAM_BOT_TOKEN: {'SET' if bot_token else 'NOT SET'}")
+        print(f"TELEGRAM_CHANNEL_ID: {channel_id}")
+
+        bot = Bot(token=bot_token)
 
         for job in new_jobs:
             message = (
@@ -36,9 +46,13 @@ async def main():
                 f"📅 Posted on: {job['post_date']}\n"
                 f"[More Details]({job['description']})"
             )
+            # Debugging: Print message being sent
+            print(f"Sending message: {message}")
             await bot.send_message(chat_id=channel_id, text=message, parse_mode="Markdown")
 
         print(f"Posted {len(new_jobs)} new jobs to Telegram.")
+    else:
+        print("No new jobs detected.")
 
     # Save the current jobs to track in the next run
     previous_jobs_path.parent.mkdir(parents=True, exist_ok=True)
