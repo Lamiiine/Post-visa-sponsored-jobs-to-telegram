@@ -29,9 +29,11 @@ jobs:
         run: |
           curl https://relocate-with-us.github.io/db.json -o jobList.json
 
+      - name: Verify Files in Directory
+        run: ls -la
+
       - name: Execute Python Script
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-        run: |
-          python post_new_jobs.py
+        run: python post_new_jobs.py
